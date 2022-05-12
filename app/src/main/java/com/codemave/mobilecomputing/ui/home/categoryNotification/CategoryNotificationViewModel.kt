@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 
 class CategoryPaymentViewModel(
     private val categoryId: Long,
-    private val paymentRepository: NotificationRepository = Graph.paymentRepository
+    private val paymentRepository: NotificationRepository = Graph.notificationRepository
 ) : ViewModel() {
     private val _state = MutableStateFlow(CategoryPaymentViewState())
 

@@ -2,7 +2,9 @@ package com.codemave.mobilecomputing.ui.notification
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -18,14 +20,16 @@ import com.codemave.mobilecomputing.data.entity.Category
 import com.codemave.mobilecomputing.data.entity.Notification
 import com.codemave.mobilecomputing.data.repository.CategoryRepository
 import com.codemave.mobilecomputing.data.repository.NotificationRepository
+import com.codemave.mobilecomputing.ui.home.HomeViewModel
 import com.codemave.mobilecomputing.util.NotificationWorker
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+
 class PaymentViewModel(
-    private val paymentRepository: NotificationRepository = Graph.paymentRepository,
+    private val paymentRepository: NotificationRepository = Graph.notificationRepository,
     private val categoryRepository: CategoryRepository = Graph.categoryRepository,
 ): ViewModel() {
     private val _state = MutableStateFlow(PaymentViewState())
@@ -33,8 +37,9 @@ class PaymentViewModel(
     val state: StateFlow<PaymentViewState>
         get() = _state
 
+
     suspend fun savePayment(payment: Notification): Long {
-        createPaymentMadeNotification(payment)
+        createPaymentMadeNotification(payment,Graph.appContext)
         return paymentRepository.addPayment(payment)
     }
 
@@ -62,8 +67,6 @@ private fun setOneTimeNotification() {
 
     workManager.enqueue(notificationWorker)
 
-    //Monitoring for state of work
-
 }
 
 private fun createNotificationChannel(context: Context) {
@@ -83,12 +86,24 @@ private fun createNotificationChannel(context: Context) {
 }
 
 
-private fun createPaymentMadeNotification(payment: Notification) {
+private fun createPaymentMadeNotification(payment: Notification,context:Context) {
+
     val notificationId = 2
+//
+//
+
+    val intent = Intent(context,HomeViewModel::class.java).apply {
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+    }
+    val pendingIntent: PendingIntent = PendingIntent.getActivity(context, 0, intent, 0)
+
     val builder = NotificationCompat.Builder(Graph.appContext, "CHANNEL_ID")
         .setSmallIcon(R.drawable.ic_launcher_background)
-        .setContentTitle("${payment.paymentTitle}")
-        .setContentText("${payment.paymentDescription}}")
+        .setContentTitle(payment.paymentTitle)
+        .setContentText(payment.paymentDescription)
+        .setAutoCancel(false)
+        .setContentIntent(pendingIntent)
+
         .setPriority(NotificationCompat.PRIORITY_HIGH)
     with(NotificationManagerCompat.from(Graph.appContext)) {
         notify(notificationId, builder.build())

@@ -12,7 +12,7 @@ import com.codemave.mobilecomputing.data.room.MobileComputingDatabase
  * For a real app, please use something like Koin/Dagger/Hilt instead
  */
 object Graph {
-    lateinit var database: MobileComputingDatabase
+    private lateinit var database: MobileComputingDatabase
 
     lateinit var appContext: Context
 
@@ -22,7 +22,7 @@ object Graph {
         )
     }
 
-    val paymentRepository by lazy {
+    val notificationRepository by lazy {
         NotificationRepository(
             paymentDao = database.paymentDao()
         )
