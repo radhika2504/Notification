@@ -3,9 +3,11 @@ package com.codemave.mobilecomputing.ui.notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.app.RemoteInput
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.Bundle
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.ViewModel
@@ -89,26 +91,31 @@ private fun createNotificationChannel(context: Context) {
 private fun createPaymentMadeNotification(payment: Notification,context:Context) {
 
     val notificationId = 2
-//
-//
 
     val intent = Intent(context,HomeViewModel::class.java).apply {
         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
     }
     val pendingIntent: PendingIntent = PendingIntent.getActivity(context, 0, intent, 0)
+    val remoteInput: androidx.core.app.RemoteInput =androidx.core.app.RemoteInput.Builder("Key_text_Reply").setLabel("Your answer").build()
+    val replyIntent=Intent(context,HomeViewModel::class.java)
+    replyIntent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
 
+    val replyPendingIntent:PendingIntent= PendingIntent.getActivity(context,1,replyIntent,PendingIntent.FLAG_ONE_SHOT)
+    val replyAction:NotificationCompat.Action=NotificationCompat.Action.Builder(R.drawable.ic_launcher_foreground,"Reply",replyPendingIntent).addRemoteInput(remoteInput).build()
     val builder = NotificationCompat.Builder(Graph.appContext, "CHANNEL_ID")
         .setSmallIcon(R.drawable.ic_launcher_background)
         .setContentTitle(payment.paymentTitle)
         .setContentText(payment.paymentDescription)
         .setAutoCancel(false)
         .setContentIntent(pendingIntent)
-
+        .addAction(replyAction)
         .setPriority(NotificationCompat.PRIORITY_HIGH)
     with(NotificationManagerCompat.from(Graph.appContext)) {
         notify(notificationId, builder.build())
     }
 }
+
+
 
 data class PaymentViewState(
     val categories: List<Category> = emptyList()
